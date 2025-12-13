@@ -25,15 +25,7 @@ public class ExpenseApplication {
     @Bean
     public CommandLineRunner demo(UserRepository userRepository) {  
         return (args) -> {
-            User user = new User();
-            user.setUsername("harsha3");
-            user.setPassword("secret123");
-            user.setCreatedAt(LocalDateTime.now());
-            user.setUpdatedAt(LocalDateTime.now());
-            User savedUser = userRepository.save(user);
-            logger.info("Inserted User: {}", savedUser);
-            User fetched = userRepository.findById(savedUser.getId()).orElse(null);
-            logger.info("Fetched User from DB: {}", fetched);
+            
         };
     }
 }

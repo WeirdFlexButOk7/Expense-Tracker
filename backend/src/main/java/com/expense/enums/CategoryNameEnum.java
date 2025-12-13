@@ -13,5 +13,7 @@ public enum CategoryNameEnum {
     TRAVEL,
     ENTERTAINMENT,
     FOOD_AND_BEVERAGES,
+    LOAN,
+    LOAN_INTEREST,
     OTHER_EXPENSE
 }
