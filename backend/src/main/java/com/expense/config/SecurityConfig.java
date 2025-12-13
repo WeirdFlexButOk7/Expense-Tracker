@@ -16,11 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtFilter;
+    private final JwtAuthFilter authFilter;
     private final JwtAuthEntryPoint authEntryPoint;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter, JwtAuthEntryPoint authEntryPoint) {
-        this.jwtFilter = jwtFilter;
+    public SecurityConfig(JwtAuthFilter authFilter, JwtAuthEntryPoint authEntryPoint) {
+        this.authFilter = authFilter;
         this.authEntryPoint = authEntryPoint;
     }
     
@@ -34,7 +34,7 @@ public class SecurityConfig {
             .anyRequest().authenticated()
         );
 
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
