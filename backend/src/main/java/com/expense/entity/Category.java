@@ -12,7 +12,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.EnumType;
-import jakarta.persistence.JoinColumn;
 
 import java.util.List;
 import lombok.Data;

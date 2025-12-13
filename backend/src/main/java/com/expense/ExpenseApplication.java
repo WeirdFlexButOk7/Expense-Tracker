@@ -8,11 +8,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import java.time.LocalDateTime;
-
-import com.expense.entity.User;
-import com.expense.repository.UserRepository;
-
 @SpringBootApplication
 public class ExpenseApplication {
 
@@ -23,9 +18,9 @@ public class ExpenseApplication {
     }
 
     @Bean
-    public CommandLineRunner demo(UserRepository userRepository) {  
+    public CommandLineRunner demo() {  
         return (args) -> {
-            
+            logger.info("\n\nHello world");
         };
     }
 }

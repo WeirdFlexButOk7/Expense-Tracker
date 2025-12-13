@@ -6,13 +6,11 @@ import com.expense.dto.LoginRequest;
 import com.expense.dto.LoginResponse;
 import com.expense.entity.User;
 import com.expense.repository.UserRepository;
-import com.expense.service.AuthService;
 import com.expense.util.JwtUtil;
 import com.expense.exception.UsernameAlreadyExistsException;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -49,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 request.getUsername(),
                 request.getPassword()

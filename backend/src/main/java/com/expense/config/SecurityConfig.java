@@ -1,8 +1,5 @@
 package com.expense.config;
 
-import com.expense.config.JwtAuthenticationFilter;
-import com.expense.config.UserDetailsServiceImpl;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
