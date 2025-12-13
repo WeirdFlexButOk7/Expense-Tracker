@@ -11,9 +11,10 @@ import com.expense.exception.UsernameAlreadyExistsException;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -37,9 +38,11 @@ public class AuthServiceImpl implements AuthService {
             throw new UsernameAlreadyExistsException("Username already exists");
         }
 
-        User user = new User();
-        user.setUsername(req.getUsername());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        User user = new User()
+            .setUsername(req.getUsername())
+            .setPassword(passwordEncoder.encode(req.getPassword()))
+            .setBalance(req.getBalance())
+            .setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
         return new RegisterResponse(savedUser.getId(), savedUser.getUsername());

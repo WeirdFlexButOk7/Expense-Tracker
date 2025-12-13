@@ -13,12 +13,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.AllArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Entity
+@Accessors(chain = true)
 @Table(name = "transactions")
 public class Transaction {
 

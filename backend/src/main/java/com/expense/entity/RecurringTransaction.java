@@ -17,11 +17,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.AllArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Accessors(chain = true)
 @Entity
 @Table(name = "recurring_transactions")
 public class RecurringTransaction {

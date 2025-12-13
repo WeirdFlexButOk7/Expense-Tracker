@@ -1,6 +1,10 @@
 package com.expense.dto;
 
+import java.math.BigDecimal;
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -15,4 +19,8 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    @NotNull(message = "Current Balance is required")
+    @PositiveOrZero(message = "Balance cannot be negative")
+    private BigDecimal balance;
 }

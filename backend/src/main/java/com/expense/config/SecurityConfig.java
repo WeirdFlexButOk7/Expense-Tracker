@@ -2,7 +2,7 @@ package com.expense.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -23,20 +23,27 @@ public class SecurityConfig {
         this.authFilter = authFilter;
         this.authEntryPoint = authEntryPoint;
     }
-    
+
+    // No auth required.
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-        http.exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint));
+    @Order(1)
+    public SecurityFilterChain authEndpointsSecurityChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher("/api/auth/**")
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .build();
+    }
 
-        http.authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()
-            .anyRequest().authenticated()
-        );
-
-        http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+    // Chain for protected endpoints. JWT auth required.
+    @Bean
+    @Order(2)
+    public SecurityFilterChain apiSecurityChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher("/api/**")
+            .csrf(csrf -> csrf.disable())
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
     }
 
     @Bean
