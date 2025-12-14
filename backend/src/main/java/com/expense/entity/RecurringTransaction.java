@@ -15,41 +15,49 @@ import jakarta.persistence.JoinColumn;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Data
-@Accessors(chain = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "recurring_transactions")
 public class RecurringTransaction {
 
     @Id
+    @ToString.Include
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "recurring_transaction_id")
     private Long id;
 
     @ManyToOne
+    @ToString.Include
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @ToString.Include
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @ToString.Include
     @Column(name = "recurring_transaction_name", nullable = false)
     private String name;
 
+    @ToString.Include
+    @Column(nullable = false)
     private BigDecimal amount;
 
+    @ToString.Include
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "recurring_frequency_enum")
+    @Column(nullable = false)
     private RecurringFrequencyEnum frequency;
 
-    @Column(name = "next_run_date")
+    @ToString.Include
+    @Column(name = "next_run_date", nullable = false)
     private LocalDate nextRunDate;
 }

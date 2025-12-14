@@ -2,48 +2,43 @@ package com.expense.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.expense.util.JwtUtil;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter authFilter;
     private final JwtAuthEntryPoint authEntryPoint;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
 
-    public SecurityConfig(JwtAuthFilter authFilter, JwtAuthEntryPoint authEntryPoint) {
-        this.authFilter = authFilter;
-        this.authEntryPoint = authEntryPoint;
-    }
-
-    // No auth required.
     @Bean
-    @Order(1)
-    public SecurityFilterChain authEndpointsSecurityChain(HttpSecurity http) throws Exception {
-        return http.securityMatcher("/api/auth/**")
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-            .build();
-    }
-
-    // Chain for protected endpoints. JWT auth required.
-    @Bean
-    @Order(2)
-    public SecurityFilterChain apiSecurityChain(HttpSecurity http) throws Exception {
-        return http.securityMatcher("/api/**")
-            .csrf(csrf -> csrf.disable())
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http.csrf(csrf -> csrf.disable())
             .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().permitAll()
+            )
+            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
             .build();
+    }
+
+    @Bean
+    public JwtAuthFilter jwtAuthFilter() {
+        return new JwtAuthFilter(jwtUtil, userDetailsServiceImpl);
     }
 
     @Bean

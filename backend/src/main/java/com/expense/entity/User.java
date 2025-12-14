@@ -11,42 +11,43 @@ import jakarta.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Data
-@Accessors(chain = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "users")
 public class User {
 
     @Id
+    @ToString.Include
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
 
+    @ToString.Include
     @Column(name = "user_name", unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
+    @ToString.Include
     @Column(nullable = false)
     private BigDecimal balance;
 
-    @Column(name = "created_at")
+    @ToString.Include
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @ToString.Exclude
     @OneToMany(mappedBy = "user")
     private List<Transaction> transactions;
 
-    @ToString.Exclude
     @OneToMany(mappedBy = "user")
     private List<RecurringTransaction> recurringTransactions;
 }

@@ -14,38 +14,38 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.EnumType;
 
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Data
-@Accessors(chain = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "categories")
 public class Category {
 
     @Id
+    @ToString.Include
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
     private Long id;
 
+    @ToString.Include
     @Enumerated(EnumType.STRING)
-    @Column(name = "category_name", nullable = false, columnDefinition = "category_name_enum")
+    @Column(name = "category_name", nullable = false)
     private CategoryNameEnum name;
 
+    @ToString.Include
     @Enumerated(EnumType.STRING)
-    @Column(name = "category_type", nullable = false, columnDefinition = "category_type_enum")
+    @Column(name = "category_type", nullable = false)
     private CategoryTypeEnum type;
 
-    @ToString.Exclude
     @OneToMany(mappedBy = "category")
     private List<Transaction> transactions;
 
-    @ToString.Exclude
     @OneToMany(mappedBy = "category")
     private List<RecurringTransaction> recurringTransactions;
 }

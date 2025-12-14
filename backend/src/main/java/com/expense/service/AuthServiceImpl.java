@@ -14,9 +14,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -24,25 +26,17 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.authenticationManager = authenticationManager;
-    }
-
     @Override
     public RegisterResponse register(RegisterRequest req) {
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new UsernameAlreadyExistsException("Username already exists");
         }
 
-        User user = new User()
-            .setUsername(req.getUsername())
-            .setPassword(passwordEncoder.encode(req.getPassword()))
-            .setBalance(req.getBalance())
-            .setCreatedAt(LocalDateTime.now());
+        User user = new User();
+        user.setUsername(req.getUsername());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setBalance(req.getBalance());
+        user.setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
         return new RegisterResponse(savedUser.getId(), savedUser.getUsername());
@@ -50,14 +44,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        String username = request.getUsername();
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                request.getUsername(),
-                request.getPassword()
-            )
+            new UsernamePasswordAuthenticationToken(username, request.getPassword())
         );
 
-        String token = jwtUtil.generateToken(request.getUsername());
-        return new LoginResponse(token);
+        String token = jwtUtil.generateToken(username);
+        return new LoginResponse(token, username);
     }
 }

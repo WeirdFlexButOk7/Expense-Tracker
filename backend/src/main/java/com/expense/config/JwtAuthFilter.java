@@ -8,24 +8,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 
-@Component
+@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
-
-    public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -37,12 +32,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String username = jwtUtil.extractUsername(token);
+        String username;
+        try {
+            username = jwtUtil.extractUsername(token);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (!jwtUtil.isTokenValid(token, userDetails)) {
+                    throw new BadCredentialsException("Expired or invalid JWT token");
+                }
 
-            if (jwtUtil.isTokenValid(token, userDetails)) {
                 UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                         userDetails,
@@ -51,8 +50,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
+            throw new BadCredentialsException("Invalid or malformed JWT token", e);
         }
-
         filterChain.doFilter(request, response);
     }
 }

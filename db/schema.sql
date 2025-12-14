@@ -1,44 +1,3 @@
----- ENUMS
---- DROP ENUMS
-DROP TYPE IF EXISTS category_name_enum CASCADE;
-DROP TYPE IF EXISTS category_type_enum CASCADE;
-DROP TYPE IF EXISTS recurring_frequency_enum CASCADE;
-
---- CREATE ENUMS
--- CATEGORY NAME ENUM
-CREATE TYPE category_name_enum AS ENUM (
-    'SALARY',
-    'OTHER_INCOME',
-    'GROCERIES',
-    'SHOPPING',
-    'RENT',
-    'ELECTRICITY_BILL',
-    'DELIVERY_APPS',
-    'ELECTRONICS',
-    'HEALTH',
-    'TRAVEL',
-    'ENTERTAINMENT',
-    'FOOD_AND_BEVERAGES',
-    'LOAN',
-    'LOAN_INTEREST',
-    'OTHER_EXPENSE'
-);
-
--- CATEGORY TYPE ENUM
-CREATE TYPE category_type_enum AS ENUM (
-    'INCOME',
-    'EXPENSE'
-);
-
--- RECURRING FREQUENCY ENUM
-CREATE TYPE recurring_frequency_enum AS ENUM(
-    'DAILY',
-    'WEEKLY',
-    'MONTHLY',
-    'YEARLY'
-);
-
-
 ---- TABLES
 --- DROP TABLES
 DROP TABLE IF EXISTS recurring_transactions;
@@ -59,8 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- CATEGORIES TABLE
 CREATE TABLE IF NOT EXISTS categories (
     category_id SERIAL PRIMARY KEY,
-    category_name category_name_enum NOT NULL,
-    category_type category_type_enum NOT NULL,
+    category_name VARCHAR(100) NOT NULL,
+    category_type VARCHAR(100) NOT NULL,
 
     CHECK (
         (category_type = 'INCOME' AND category_name IN ('SALARY', 'OTHER_INCOME'))
@@ -88,6 +47,6 @@ CREATE TABLE IF NOT EXISTS recurring_transactions (
     category_id INTEGER REFERENCES categories(category_id) ON DELETE SET NULL,
     recurring_transaction_name VARCHAR(150) NOT NULL,
     amount NUMERIC(10,2) NOT NULL,
-    frequency recurring_frequency_enum NOT NULL,
+    frequency VARCHAR(100) NOT NULL,
     next_run_date DATE NOT NULL
 );
