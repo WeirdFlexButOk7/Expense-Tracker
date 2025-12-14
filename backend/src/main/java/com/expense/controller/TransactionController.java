@@ -1,10 +1,10 @@
 package com.expense.controller;
 
-import com.expense.dto.TransactionsResponse;
+import com.expense.dto.TransactionResponse;
 import com.expense.enums.CategoryNameEnum;
 import com.expense.enums.CategoryTypeEnum;
 import com.expense.config.UserDetailsImpl;
-import com.expense.service.TransactionsService;
+import com.expense.service.TransactionService;
 import com.expense.util.DateRange;
 import com.expense.util.DateRangeUtil;
 
@@ -22,13 +22,13 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/transactions")
-public class TransactionsController {
+@RequestMapping("/api/transaction")
+public class TransactionController {
 
-    private final TransactionsService transactionService;
+    private final TransactionService transactionService;
 
     @GetMapping
-    public ResponseEntity<TransactionsResponse> getTransactions(
+    public ResponseEntity<TransactionResponse> getTransactions(
         Authentication authentication,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
@@ -48,7 +48,7 @@ public class TransactionsController {
         CategoryTypeEnum categoryTypeEnum = categoryType.equalsIgnoreCase("ALL") ? null : CategoryTypeEnum.valueOf(categoryType);
         CategoryNameEnum categoryNameEnum = categoryName.equalsIgnoreCase("ALL") ? null : CategoryNameEnum.valueOf(categoryName);
 
-        TransactionsResponse response =
+        TransactionResponse response =
             transactionService.getTransactions(
                 userId,
                 fromToDateRange,

@@ -1,6 +1,6 @@
 package com.expense.service;
 
-import com.expense.dto.TransactionsResponse;
+import com.expense.dto.TransactionResponse;
 import com.expense.entity.Transaction;
 import com.expense.entity.User;
 import com.expense.enums.CategoryNameEnum;
@@ -20,13 +20,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class TransactionsServiceImpl implements TransactionsService {
+public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
     @Override
-    public TransactionsResponse getTransactions(
+    public TransactionResponse getTransactions(
         Long userId,
         DateRange dateRange,
         CategoryTypeEnum categoryType,
@@ -63,7 +63,7 @@ public class TransactionsServiceImpl implements TransactionsService {
         BigDecimal expenseTotal = transactionRepository.sumAmountByCategory(userId, start, end, CategoryTypeEnum.EXPENSE, null);
         BigDecimal delta = incomeTotal.subtract(expenseTotal);
 
-        return TransactionsResponse.builder()
+        return TransactionResponse.builder()
             .username(user.getUsername())
             .transactions(list)
             .transactionsCount(transactionsCount)

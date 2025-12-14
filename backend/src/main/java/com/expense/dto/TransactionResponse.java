@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TransactionsResponse {
+public class TransactionResponse {
     
     private String username;
     private long transactionsCount;
