@@ -24,14 +24,18 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest req) {
+    public ResponseEntity<RegisterResponse> register(
+        @Valid @RequestBody RegisterRequest req
+    ) {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(authService.register(req));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+    public ResponseEntity<LoginResponse> login(
+        @Valid @RequestBody LoginRequest req
+    ) {
         return ResponseEntity
             .ok(authService.login(req));
     }

@@ -44,4 +44,31 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         GROUP BY t.category.name
     """)
     List<Object[]> expenseBreakdown(Long userId, LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+        SELECT t
+        FROM Transaction t
+        WHERE t.user.id = :userId
+        AND t.datetime BETWEEN :start AND :end
+        AND (:categoryType IS NULL OR t.category.type = :categoryType)
+        AND (:categoryName IS NULL OR t.category.name = :categoryName)
+        AND (:name = '' OR LOWER(t.name) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND (:paymentMode = '' OR LOWER(t.paymentMode) LIKE LOWER(CONCAT('%', :paymentMode, '%')))
+        AND (:note = '' OR LOWER(t.note) LIKE LOWER(CONCAT('%', :note, '%')))
+        AND (:minAmount IS NULL OR t.amount >= :minAmount)
+        AND (:maxAmount IS NULL OR t.amount <= :maxAmount)
+        ORDER BY t.datetime DESC
+    """)
+    List<Transaction> filterTransactions(
+        Long userId,
+        LocalDateTime start,
+        LocalDateTime end,
+        CategoryTypeEnum categoryType,
+        CategoryNameEnum categoryName,
+        String name,
+        String paymentMode,
+        String note,
+        BigDecimal minAmount,
+        BigDecimal maxAmount
+    );
 }

@@ -34,7 +34,7 @@ public class DashboardServiceImpl implements DashboardService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         LocalDateTime start = range.from().atStartOfDay();
-        LocalDateTime end = range.to().plusDays(1).atStartOfDay();
+        LocalDateTime end = range.to().atTime(23, 59, 59);
 
         BigDecimal salaryIncomeTotal = transactionRepository.sumAmountByCategory(userId, start, end, CategoryTypeEnum.INCOME, CategoryNameEnum.SALARY);
         BigDecimal otherIncomeTotal = transactionRepository.sumAmountByCategory(userId, start, end, CategoryTypeEnum.INCOME, CategoryNameEnum.OTHER_INCOME);
