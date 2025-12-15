@@ -7,6 +7,7 @@ import com.expense.enums.CategoryTypeEnum;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -71,4 +72,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         BigDecimal minAmount,
         BigDecimal maxAmount
     );
+
+    Optional<Transaction> findByIdAndUserId(Long id, Long userId);
 }

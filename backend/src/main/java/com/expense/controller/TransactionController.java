@@ -1,6 +1,8 @@
 package com.expense.controller;
 
+import com.expense.dto.TransactionRequest;
 import com.expense.dto.TransactionResponse;
+import com.expense.entity.Transaction;
 import com.expense.enums.CategoryNameEnum;
 import com.expense.enums.CategoryTypeEnum;
 import com.expense.config.UserDetailsImpl;
@@ -11,14 +13,12 @@ import com.expense.util.DateRangeUtil;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 
 @RequiredArgsConstructor
 @RestController
@@ -40,9 +40,7 @@ public class TransactionController {
         @RequestParam(required = false) BigDecimal minAmount,
         @RequestParam(required = false) BigDecimal maxAmount
     ) {
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        Long userId = userDetails.getUser().getId();
+        Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getUser().getId();
         DateRange fromToDateRange = DateRangeUtil.normalize(from, to);
 
         CategoryTypeEnum categoryTypeEnum = categoryType.equalsIgnoreCase("ALL") ? null : CategoryTypeEnum.valueOf(categoryType);
@@ -62,5 +60,36 @@ public class TransactionController {
             );
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/new")
+    public ResponseEntity<Transaction> createTransaction(
+        Authentication authentication,
+        @Valid @RequestBody TransactionRequest req
+    ) {
+        Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getUser().getId();
+        Transaction created = transactionService.createTransaction(userId, req);
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Transaction> updateTransaction(
+        Authentication authentication,
+        @PathVariable Long id,
+        @Valid @RequestBody TransactionRequest req
+    ) {
+        Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getUser().getId();
+        Transaction updated = transactionService.updateTransaction(userId, id, req);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteTransaction(
+        Authentication authentication,
+        @PathVariable Long id
+    ) {
+        Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getUser().getId();
+        transactionService.deleteTransaction(userId, id);
+        return ResponseEntity.noContent().build();
     }
 }
