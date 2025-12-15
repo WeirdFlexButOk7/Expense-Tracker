@@ -37,7 +37,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     long countTransactionsByCategory(Long userId, LocalDateTime start, LocalDateTime end, CategoryTypeEnum type, CategoryNameEnum name);
 
     @Query("""
-        SELECT t.category.name AS category, COALESCE(COUNT(t), 0), COUNT(t)
+        SELECT t.category.name AS category, COALESCE(SUM(t.amount), 0), COUNT(t)
         FROM Transaction t
         WHERE t.user.id = :userId
         AND t.datetime BETWEEN :start AND :end

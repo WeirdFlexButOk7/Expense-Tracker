@@ -51,7 +51,7 @@ public class DashboardServiceImpl implements DashboardService {
         for (Object[] row : breakdown) {
             CategoryNameEnum category = (CategoryNameEnum) row[0];
             BigDecimal amount = (BigDecimal) row[1];
-            long count = (long) row[2];
+            long count = ((Number) row[2]).longValue();
             expenseBreakdown.add(new DashboardExpenseCategoryStat(category, amount, count));
         }
 
