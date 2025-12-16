@@ -70,16 +70,3 @@ Java 17+, Node.js 18+, PostgreSQL, npm
     ```
 
     Frontend runs at `http://localhost:3000`
-
----
-
-## Environment Variables
-
-### Backend
-Set db creds and JWT secret in backend config:
-```
-spring.datasource.url
-spring.datasource.username
-spring.datasource.password
-jwt.secret
-```
