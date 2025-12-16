@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
+import { Select } from '../components/ui/select';
 import { Modal } from '../components/ui/Modal';
 import { Loading } from '../components/ui/Loading';
-import { mockApi, RecurringTransaction, Category } from '../lib/mockApi';
+import { actApi } from '../lib/axiosConfig';
+import { RecurringTransaction, Category } from '../lib/types';
 import { toast } from '../lib/toast';
 import { Plus, Edit2, Trash2, RefreshCw } from 'lucide-react';
 
@@ -24,7 +25,7 @@ export function Recurring() {
   
   const loadCategories = async () => {
     try {
-      const data = await mockApi.categories.getAll();
+      const data = await actApi.categories.getAll();
       setCategories(data);
     } catch (err) {
       console.error('Failed to load categories:', err);
@@ -34,7 +35,7 @@ export function Recurring() {
   const loadRecurringTransactions = async () => {
     try {
       setLoading(true);
-      const data = await mockApi.recurring.getAll();
+      const data = await actApi.recurring.getAll();
       setTransactions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recurring transactions');
@@ -53,11 +54,11 @@ export function Recurring() {
     setEditingTransaction(null);
   };
   
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this recurring transaction?')) return;
     
     try {
-      await mockApi.recurring.delete(id);
+      await actApi.recurring.delete(id);
       toast.success('Recurring transaction deleted successfully');
       loadRecurringTransactions();
     } catch (err) {
@@ -94,7 +95,7 @@ export function Recurring() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4">Title</th>
-                  <th className="text-left py-3 px-4">Category</th>
+                  <th className="text-left py-3 px-4">CategoryName</th>
                   <th className="text-left py-3 px-4">Frequency</th>
                   <th className="text-left py-3 px-4">Next Run</th>
                   <th className="text-left py-3 px-4">Type</th>
@@ -105,26 +106,26 @@ export function Recurring() {
               <tbody>
                 {transactions.map((transaction) => (
                   <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4">{transaction.title}</td>
-                    <td className="py-3 px-4">{transaction.category}</td>
+                    <td className="py-3 px-4">{transaction.name}</td>
+                    <td className="py-3 px-4">{transaction.categoryName}</td>
                     <td className="py-3 px-4">
                       <span className="capitalize">{transaction.frequency}</span>
                     </td>
-                    <td className="py-3 px-4">{transaction.nextRun}</td>
+                    <td className="py-3 px-4">{transaction.nextRunDate}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-2 py-1 rounded text-sm ${
-                        transaction.type === 'income' 
+                        transaction.categoryType === 'INCOME' 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {transaction.type}
+                        {transaction.categoryType}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span className={
-                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        transaction.categoryType === 'INCOME' ? 'text-green-600' : 'text-red-600'
                       }>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                        {transaction.categoryType === 'INCOME' ? '+' : '-'}${transaction.amount.toFixed(2)}
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -172,12 +173,12 @@ interface RecurringModalProps {
 
 function RecurringModal({ transaction, categories, onClose, onSuccess }: RecurringModalProps) {
   const [formData, setFormData] = useState({
-    title: transaction?.title || '',
+    name: transaction?.name || '',
     amount: transaction?.amount.toString() || '',
-    type: transaction?.type || 'expense',
-    category: transaction?.category || '',
+    categoryName: transaction?.categoryName || 'EXPENSE',
+    categoryType: transaction?.categoryType || '',
     frequency: transaction?.frequency || 'monthly',
-    startDate: transaction?.startDate || new Date().toISOString().split('T')[0]
+    nextRunDate: transaction?.nextRunDate || new Date().toISOString().split('T')[0]
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -185,20 +186,20 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Title is required';
     }
     
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Amount must be greater than 0';
     }
     
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
+    if (!formData.categoryName) {
+      newErrors.categoryName = 'Category is required';
     }
     
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+    if (!formData.nextRunDate) {
+      newErrors.nextRunDate = 'Start date is required';
     }
     
     setErrors(newErrors);
@@ -215,16 +216,15 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
     try {
       const data = {
         ...formData,
-        amount: parseFloat(formData.amount),
-        type: formData.type as 'income' | 'expense',
-        frequency: formData.frequency as 'daily' | 'weekly' | 'monthly' | 'yearly'
+        type: formData.categoryType as 'INCOME' | 'EXPENSE',
+        frequency: formData.frequency as 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
       };
       
       if (transaction) {
-        await mockApi.recurring.update(transaction.id, data);
+        await actApi.recurring.update(transaction.id, data);
         toast.success('Recurring transaction updated successfully');
       } else {
-        await mockApi.recurring.create(data);
+        await actApi.recurring.create(data);
         toast.success('Recurring transaction created successfully');
       }
       
@@ -237,7 +237,7 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
     }
   };
   
-  const filteredCategories = categories.filter(cat => cat.type === formData.type);
+  const filteredCategories = categories.filter(cat => cat.type === formData.categoryType);
   
   return (
     <Modal
@@ -248,9 +248,9 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           label="Title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          error={errors.title}
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          error={errors.name}
           disabled={loading}
         />
         
@@ -265,22 +265,19 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
         />
         
         <Select
-          label="Type"
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value, category: '' })}
+          value={formData.categoryType}
+          onChange={(e: any) => setFormData({ ...formData, categoryType: e.target.value, categoryName: '' })}
           options={[
-            { value: 'income', label: 'Income' },
-            { value: 'expense', label: 'Expense' }
+            { value: 'INCOME', label: 'Income' },
+            { value: 'EXPENSE', label: 'Expense' }
           ]}
           disabled={loading}
         />
         
         <Select
-          label="Category"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          value={formData.categoryName}
+          onChange={(e: any) => setFormData({ ...formData, categoryName: e.target.value })}
           options={[
-            { value: '', label: 'Select a category' },
             ...filteredCategories.map(cat => ({ value: cat.name, label: cat.name }))
           ]}
           error={errors.category}
@@ -288,14 +285,13 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
         />
         
         <Select
-          label="Frequency"
           value={formData.frequency}
-          onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+          onChange={(e: any) => setFormData({ ...formData, frequency: e.target.value })}
           options={[
-            { value: 'daily', label: 'Daily' },
-            { value: 'weekly', label: 'Weekly' },
-            { value: 'monthly', label: 'Monthly' },
-            { value: 'yearly', label: 'Yearly' }
+            { value: 'DAILY', label: 'Daily' },
+            { value: 'WEEKLY', label: 'Weekly' },
+            { value: 'MONTHLY', label: 'Monthly' },
+            { value: 'YEARLY', label: 'Yearly' }
           ]}
           disabled={loading}
         />
@@ -303,9 +299,9 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
         <Input
           label="Start Date"
           type="date"
-          value={formData.startDate}
-          onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-          error={errors.startDate}
+          value={formData.nextRunDate}
+          onChange={(e) => setFormData({ ...formData, nextRunDate: e.target.value })}
+          error={errors.nextRunDate}
           disabled={loading}
         />
         

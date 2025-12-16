@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Loading } from '../components/ui/Loading';
-import { mockApi, User } from '../lib/mockApi';
+import { actApi } from '../lib/axiosConfig';
+import { User } from '../lib/types';
 import { User as UserIcon, Calendar, DollarSign } from 'lucide-react';
 
 export function Profile() {
@@ -16,7 +17,7 @@ export function Profile() {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const data = await mockApi.user.getProfile();
+      const data = await actApi.user.getProfile();
       setUser(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -44,8 +45,8 @@ export function Profile() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-4 bg-[var(--color-primary)] bg-opacity-10 rounded-full">
-              <UserIcon className="text-[var(--color-primary)]" size={48} />
+            <div className="p-4 bg-(--color-primary) bg-opacity-10 rounded-full">
+              <UserIcon className="text-(--color-primary)" size={48} />
             </div>
             <div>
               <h2>{user.username}</h2>
@@ -87,12 +88,6 @@ export function Profile() {
               </p>
             </div>
             
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> This is a demo application. In a production environment, 
-                you would be able to edit your profile information and manage account settings here.
-              </p>
-            </div>
           </div>
         </Card>
       </div>

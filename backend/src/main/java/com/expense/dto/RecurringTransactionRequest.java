@@ -1,6 +1,7 @@
 package com.expense.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import com.expense.enums.CategoryNameEnum;
 import com.expense.enums.RecurringFrequencyEnum;
@@ -27,4 +28,6 @@ public class RecurringTransactionRequest {
 
     @NotNull(message = "Frequency of recurring transaction is required")
     private RecurringFrequencyEnum frequency;
+
+    private LocalDate nextRunDate;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Transaction, Category, TransactionRequest } from '../lib/types';
 import { actApi } from '../lib/axiosConfig';
 import { Button } from './ui/Button';
@@ -46,6 +46,16 @@ export function TransactionModal({
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setFormData({
+      categoryName: transaction?.category.name || '',
+      name: transaction?.name || '',
+      amount: transaction?.amount || 0,
+      paymentMode: transaction?.paymentMode || '',
+      note: transaction?.note || ''
+    });
+  }, [transaction]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -96,7 +106,12 @@ export function TransactionModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+        open={isOpen}
+        onOpenChange={(open: boolean) => {
+          if (!open) onClose();
+        }}
+      >
       <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>{transaction ? 'Edit Transaction' : 'Add Transaction'}</DialogTitle>
@@ -110,7 +125,9 @@ export function TransactionModal({
             <Label htmlFor="category">Category *</Label>
             <Select
               value={formData.categoryName}
-              onValueChange={(value) => setFormData({ ...formData, categoryName: value })}
+              onChange={(e: { target: { value: string } }) =>
+                setFormData({ ...formData, categoryName: e.target.value })
+              }
               disabled={loading}
             >
               <SelectTrigger id="category" className={errors.categoryName ? 'border-red-500' : ''}>
@@ -163,24 +180,14 @@ export function TransactionModal({
 
           <div className="space-y-2">
             <Label htmlFor="paymentMode">Payment Mode *</Label>
-            <Select
+            <Input
+              id="paymentMode"
               value={formData.paymentMode}
-              onValueChange={(value) => setFormData({ ...formData, paymentMode: value })}
+              onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
+              placeholder="e.g., Cash, Credit Card"
               disabled={loading}
-            >
-              <SelectTrigger id="paymentMode" className={errors.paymentMode ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Select payment mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Cash">Cash</SelectItem>
-                <SelectItem value="Credit Card">Credit Card</SelectItem>
-                <SelectItem value="Debit Card">Debit Card</SelectItem>
-                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                <SelectItem value="PayPal">PayPal</SelectItem>
-                <SelectItem value="UPI">UPI</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+              className={errors.name ? 'border-red-500' : ''}
+            />
             {errors.paymentMode && (
               <p className="text-sm text-red-600">{errors.paymentMode}</p>
             )}

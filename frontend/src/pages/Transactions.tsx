@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, Category, TransactionFilters, TransactionResponse } from '../lib/types';
-import { mockApi } from '../lib/mockApi';
 import { actApi } from '../lib/axiosConfig';
 import { TransactionModal } from '../components/transactionModal';
 import { Button } from '../components/ui/Button';
@@ -78,6 +77,7 @@ export function Transactions() {
   };
 
   const handleOpenModal = (transaction?: Transaction) => {
+    console.log(transaction);
     setEditingTransaction(transaction || null);
     setIsModalOpen(true);
   };
@@ -259,7 +259,7 @@ export function Transactions() {
                     <Label htmlFor="categoryType">Category Type</Label>
                     <Select
                       value={filters.categoryType}
-                      onValueChange={(value) => updateFilter('categoryType', value)}
+                      onChange={(e) => updateFilter('categoryType', e.target.value)}
                     >
                       <SelectTrigger id="categoryType">
                         <SelectValue />
@@ -276,7 +276,7 @@ export function Transactions() {
                     <Label htmlFor="categoryName">Category Name</Label>
                     <Select
                       value={filters.categoryName}
-                      onValueChange={(value) => updateFilter('categoryName', value)}
+                      onChange={(e) => updateFilter('categoryType', e.target.value)}
                     >
                       <SelectTrigger id="categoryName">
                         <SelectValue />

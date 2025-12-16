@@ -6,15 +6,18 @@ import com.expense.enums.RecurringFrequencyEnum;
 
 public class RecurringDateUtil {
     public static LocalDate calculateNextRunDate(RecurringFrequencyEnum frequency, LocalDate baseDate) {
-        if (frequency == null || baseDate == null) {
-            return null;
+        if(baseDate == null) {
+            baseDate = LocalDate.now();
         }
-
-        return switch (frequency) {
+        LocalDate nextRunDate = switch (frequency) {
             case DAILY -> baseDate.plusDays(1);
             case WEEKLY -> baseDate.plusWeeks(1);
             case MONTHLY -> baseDate.plusMonths(1);
             case YEARLY -> baseDate.plusYears(1);
         };
+        if(nextRunDate.isBefore(LocalDate.now().plusDays(1))) {
+            nextRunDate = LocalDate.now().plusDays(1);
+        }
+        return nextRunDate;
     }
 }

@@ -48,7 +48,7 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
         rt.setAmount(req.getAmount());
         rt.setFrequency(req.getFrequency());
         rt.setNextRunDate(
-            RecurringDateUtil.calculateNextRunDate(req.getFrequency(), LocalDate.now())
+            RecurringDateUtil.calculateNextRunDate(req.getFrequency(), req.getNextRunDate())
         );
 
         return recurringRepository.save(rt);
@@ -64,7 +64,7 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
 
         if (req.getFrequency() != rt.getFrequency()) {
             rt.setNextRunDate(
-                RecurringDateUtil.calculateNextRunDate(req.getFrequency(), LocalDate.now())
+                RecurringDateUtil.calculateNextRunDate(req.getFrequency(), req.getNextRunDate())
             );
         }
 

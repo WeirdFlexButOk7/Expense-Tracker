@@ -1,7 +1,8 @@
 export interface User {
-  id: number;
+  id: string;
   username: string;
-  email: string;
+  createdAt: string;
+  balance: number;
 }
 
 export interface Category {
@@ -48,4 +49,23 @@ export interface TransactionFilters {
   note?: string;
   minAmount?: number;
   maxAmount?: number;
+}
+
+export interface RecurringTransaction {
+  id: number;
+  userId: number;
+  categoryName: string;
+  categoryType: string;
+  name: string;
+  amount: number;
+  frequency: string;
+  nextRunDate: string;
+}
+
+export interface RecurringTransactionRequest {
+  categoryName: string;
+  name: string;
+  amount: string;
+  frequency: string;
+  nextRunDate: string;
 }

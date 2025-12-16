@@ -35,10 +35,6 @@ export function Categories() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1>Categories</h1>
-        <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
-          <Plus size={20} />
-          Add Category
-        </Button>
       </div>
       
       {loading ? (

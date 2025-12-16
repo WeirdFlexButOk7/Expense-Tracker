@@ -10,12 +10,6 @@ import {
 
 import { cn } from "./utils";
 
-function Select({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
-}
-
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
@@ -172,6 +166,68 @@ function SelectScrollDownButton({
     >
       <ChevronDownIcon className="size-4" />
     </SelectPrimitive.ScrollDownButton>
+  );
+}
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface AppSelectProps {
+  value?: string;
+  onChange?: (e: { target: { value: string } }) => void;
+  options?: SelectOption[];
+  placeholder?: string;
+  disabled?: boolean;
+  error?: string;
+  label?: string;
+  children?: React.ReactNode;
+}
+
+function Select({
+  value,
+  onChange,
+  options,
+  placeholder = "Select an option",
+  disabled,
+  error,
+  label,
+  children,
+}: AppSelectProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      {label && (
+        <label className="text-sm font-medium text-foreground">
+          {label}
+        </label>
+      )}
+
+      <SelectPrimitive.Root
+        value={value}
+        onValueChange={(val) =>
+          onChange?.({ target: { value: val } })
+        }
+        disabled={disabled}
+      >
+        <SelectTrigger aria-invalid={!!error}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+
+        <SelectContent>
+          {children ??
+            options?.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+        </SelectContent>
+      </SelectPrimitive.Root>
+
+      {error && (
+        <p className="text-xs text-destructive">{error}</p>
+      )}
+    </div>
   );
 }
 
