@@ -5,6 +5,10 @@ backend/.mvn/wrapper/maven-wrapper.jar
 !backend/**/src/main/**/target/
 !backend/**/src/test/**/target/
 
+### frontend (react) ###
+frontend/node_modules/*
+front.zip
+
 ### STS ###
 .apt_generated
 .classpath
