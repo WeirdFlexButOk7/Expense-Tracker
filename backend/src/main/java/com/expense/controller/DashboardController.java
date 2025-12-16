@@ -2,6 +2,7 @@ package com.expense.controller;
 
 import com.expense.config.UserDetailsImpl;
 import com.expense.dto.DashboardResponse;
+import com.expense.entity.User;
 import com.expense.service.DashboardService;
 import com.expense.util.DateRangeUtil;
 import com.expense.util.DateRange;
@@ -28,8 +29,9 @@ public class DashboardController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
 
-        Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getUser().getId();
-        DateRange fromToDateRange = DateRangeUtil.normalize(from, to);
+        User user = ((UserDetailsImpl) authentication.getPrincipal()).getUser();
+        Long userId = user.getId();
+        DateRange fromToDateRange = DateRangeUtil.normalize(from, to, user.getCreatedAt());
 
         DashboardResponse response = dashboardService.getDashboardData(userId, fromToDateRange);
         return ResponseEntity.ok(response);

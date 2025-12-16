@@ -1,24 +1,24 @@
 package com.expense.util;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class DateRangeUtil {
 
-    public static DateRange normalize(LocalDate from, LocalDate to) {
+    public static DateRange normalize(LocalDate from, LocalDate to, LocalDateTime userCreatedAt) {
         LocalDate today = LocalDate.now();
+        LocalDate createdAt = userCreatedAt.toLocalDate();
 
-        if (from == null && to == null) { // both null, default last 30 days
-            to = today;
-            from = today.minusDays(30);
-        } else if (from == null) { // from null, infer from
-            from = to.minusDays(30);
-        } else if (to == null) { // to null, infer to
-            to = from.plusDays(30);
-        } else if (from.isAfter(to)) { // both present, ensure order
+        if (from == null) from = createdAt;
+        if (to == null) to = today;
+        if (from.isAfter(to)) {
             LocalDate temp = from;
             from = to;
             to = temp;
         }
+        
+        from = from.isBefore(createdAt) ? createdAt : from;
+        to = to.isAfter(today) ? today : to;
 
         return new DateRange(from, to);
     }

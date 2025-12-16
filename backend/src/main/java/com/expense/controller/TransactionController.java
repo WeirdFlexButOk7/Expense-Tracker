@@ -3,6 +3,7 @@ package com.expense.controller;
 import com.expense.dto.TransactionRequest;
 import com.expense.dto.TransactionResponse;
 import com.expense.entity.Transaction;
+import com.expense.entity.User;
 import com.expense.enums.CategoryNameEnum;
 import com.expense.enums.CategoryTypeEnum;
 import com.expense.config.UserDetailsImpl;
@@ -40,8 +41,9 @@ public class TransactionController {
         @RequestParam(required = false) BigDecimal minAmount,
         @RequestParam(required = false) BigDecimal maxAmount
     ) {
-        Long userId = ((UserDetailsImpl) authentication.getPrincipal()).getUser().getId();
-        DateRange fromToDateRange = DateRangeUtil.normalize(from, to);
+        User user = ((UserDetailsImpl) authentication.getPrincipal()).getUser();
+        Long userId = user.getId();
+        DateRange fromToDateRange = DateRangeUtil.normalize(from, to , user.getCreatedAt());
 
         CategoryTypeEnum categoryTypeEnum = categoryType.equalsIgnoreCase("ALL") ? null : CategoryTypeEnum.valueOf(categoryType);
         CategoryNameEnum categoryNameEnum = categoryName.equalsIgnoreCase("ALL") ? null : CategoryNameEnum.valueOf(categoryName);

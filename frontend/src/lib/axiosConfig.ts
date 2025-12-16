@@ -18,7 +18,7 @@ interface actUser {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-let user: actUser| null = null;
+let userA: actUser| null = null;
 export const actApi = {
   auth: {
     login: async (username: string, password: string) => {
@@ -29,16 +29,16 @@ export const actApi = {
         password: password
     });
       
-      user = {
+      userA = {
         username: username
       };
       
       const token = res.data.token;
       console.log(token);
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userA', JSON.stringify(userA));
       
-      return { userA: user, token };
+      return { userA: userA, token };
     },
 
     register: async (username: string, password: string, confirmPassword: string, balance: Decimal) => {
@@ -48,8 +48,7 @@ export const actApi = {
     if (username.length < 3) throw new Error("Username must be at least 3 characters");
     if (password.length < 6) throw new Error("Password must be at least 6 characters");
 
-    console.log(username, password, balance.toString());
-    const res = await api.post("/auth/register", {
+    await api.post("/auth/register", {
         username: username,
         password: password,
         balance: balance.toString()
@@ -59,66 +58,38 @@ export const actApi = {
     
     logout: () => {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      user = null;
+      localStorage.removeItem('userA');
+      userA = null;
     },
     
     getCurrentUser: () => {
       const userStr = localStorage.getItem('userA');
       if (userStr) {
-        user = JSON.parse(userStr);
+        userA = JSON.parse(userStr);
       }
-      return user;
+      return userA;
     }
   },
 
   dashboard: {
-    getStats: async () => {
+    getStats: async (from: string, to: string) => {
       await delay(500);
-    
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      
-      const currentMonthTransactions = mockTransactions.filter(t => {
-        const date = new Date(t.date);
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+
+      const res = await api.get("/dashboard", {
+        params: { from, to }
       });
-      
-      const income = currentMonthTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const expenses = currentMonthTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const balance = income - expenses;
-      
-      // Category-wise spending
-      const categorySpending: Record<string, number> = {};
-      currentMonthTransactions
-        .filter(t => t.type === 'expense')
-        .forEach(t => {
-          categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
-        });
-      
-      const categoryData = Object.entries(categorySpending).map(([name, value]) => ({
-        name,
-        value
-      }));
-      
-      // Recent transactions
-      const recent = [...mockTransactions]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5);
-      
-      return {
-        balance,
-        income,
-        expenses,
-        categoryData,
-        recentTransactions: recent
-      };
+
+      const categoryData = res.data.expenseBreakdown.map(
+        (item: { category: string; totalAmount: number; transactionCount: number }) => ({
+          name: item.category,
+          value: item.totalAmount,
+          transactionCount: item.transactionCount
+        })
+      );
+
+      res.data.expenseBreakdown = categoryData;
+
+      return res.data;
     }
   }
 
