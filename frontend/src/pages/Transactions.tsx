@@ -1,454 +1,467 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '../components/ui/Card';
+import { Transaction, Category, TransactionFilters, TransactionResponse } from '../lib/types';
+import { mockApi } from '../lib/mockApi';
+import { actApi } from '../lib/axiosConfig';
+import { TransactionModal } from '../components/transactionModal';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
-import { Modal } from '../components/ui/Modal';
-import { Loading } from '../components/ui/Loading';
-import { mockApi, Transaction, Category } from '../lib/mockApi';
-import { toast } from '../lib/toast';
-import { Plus, Edit2, Trash2, Search, Filter } from 'lucide-react';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table';
+import { Badge } from '../components/ui/badge';
+import { Plus, Edit2, Trash2, Search, Filter, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function Transactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionResponse, setTransactionResponse] = useState<TransactionResponse | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  
-  // Filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  
+
+  const [filters, setFilters] = useState<TransactionFilters>({
+    from: '',
+    to: '',
+    categoryType: 'ALL',
+    categoryName: 'ALL',
+    name: '',
+    paymentMode: '',
+    note: '',
+    minAmount: undefined,
+    maxAmount: undefined
+  });
+
   useEffect(() => {
     loadCategories();
   }, []);
-  
+
   useEffect(() => {
     loadTransactions();
-  }, [searchTerm, filterType, filterCategory, startDate, endDate, currentPage]);
-  
+  }, [filters]);
+
   const loadCategories = async () => {
     try {
-      const data = await mockApi.categories.getAll();
+      const data = await actApi.categories.getAll();
       setCategories(data);
     } catch (err) {
-      console.error('Failed to load categories:', err);
+      toast.error('Failed to load categories');
+      console.error(err);
     }
   };
-  
+
   const loadTransactions = async () => {
     try {
       setLoading(true);
-      const { transactions: data, totalPages: pages } = await mockApi.transactions.getAll({
-        search: searchTerm,
-        type: filterType as 'income' | 'expense' | undefined,
-        category: filterCategory,
-        startDate,
-        endDate,
-        page: currentPage,
-        limit: 10
-      });
-      setTransactions(data);
-      setTotalPages(pages);
+      const data = await actApi.transactions.getAll(filters);
+      setTransactionResponse(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load transactions');
+      toast.error('Failed to load transactions');
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handleOpenModal = (transaction?: Transaction) => {
     setEditingTransaction(transaction || null);
     setIsModalOpen(true);
   };
-  
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingTransaction(null);
   };
-  
-  const handleDelete = async (id: string) => {
+
+  const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this transaction?')) return;
-    
+
     try {
-      await mockApi.transactions.delete(id);
+      await actApi.transactions.delete(id);
       toast.success('Transaction deleted successfully');
       loadTransactions();
     } catch (err) {
       toast.error('Failed to delete transaction');
     }
   };
-  
+
   const resetFilters = () => {
-    setSearchTerm('');
-    setFilterType('');
-    setFilterCategory('');
-    setStartDate('');
-    setEndDate('');
-    setCurrentPage(1);
+    setFilters({
+      from: '',
+      to: '',
+      categoryType: 'ALL',
+      categoryName: 'ALL',
+      name: '',
+      paymentMode: '',
+      note: '',
+      minAmount: undefined,
+      maxAmount: undefined
+    });
   };
-  
+
+  const updateFilter = <K extends keyof TransactionFilters>(
+    key: K,
+    value: TransactionFilters[K]
+  ) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const formatDateTime = (datetime: string) => {
+    const date = new Date(datetime);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1>Transactions</h1>
+        <div>
+          <h1 className="text-3xl">Transactions</h1>
+          {transactionResponse && (
+            <p className="text-gray-600 mt-1">
+              Showing {transactionResponse.transactionsCount} transaction(s) for {transactionResponse.username}
+            </p>
+          )}
+        </div>
         <Button onClick={() => handleOpenModal()} className="flex items-center gap-2">
           <Plus size={20} />
           Add Transaction
         </Button>
       </div>
-      
-      {/* Search and Filters */}
+
+      {/* Summary Cards */}
+      {transactionResponse && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Total Income</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl text-green-600">{formatCurrency(transactionResponse.totalIncome)}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Total Expense</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl text-red-600">{formatCurrency(transactionResponse.totalExpense)}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Net Balance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className={`text-2xl ${transactionResponse.totalDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(transactionResponse.totalDelta)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Total Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl">{transactionResponse.transactionsCount}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters Card */}
       <Card>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <Input
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Search & Filters</CardTitle>
             <Button
-              variant="secondary"
+              variant="ghost"
+              size="sm"
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2"
             >
-              <Filter size={20} />
-              Filters
+              <Filter size={18} />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
             </Button>
           </div>
-          
-          {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-              <Select
-                label="Type"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                options={[
-                  { value: '', label: 'All Types' },
-                  { value: 'income', label: 'Income' },
-                  { value: 'expense', label: 'Expense' }
-                ]}
-              />
-              
-              <Select
-                label="Category"
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                options={[
-                  { value: '', label: 'All Categories' },
-                  ...categories.map(cat => ({ value: cat.name, label: cat.name }))
-                ]}
-              />
-              
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Quick Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <Input
-                label="Start Date"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                placeholder="Search by transaction name..."
+                value={filters.name}
+                onChange={(e) => updateFilter('name', e.target.value)}
+                className="pl-10"
               />
-              
-              <Input
-                label="End Date"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-              
-              <div className="md:col-span-4">
-                <Button variant="ghost" onClick={resetFilters}>
-                  Clear Filters
-                </Button>
-              </div>
             </div>
-          )}
-        </div>
-      </Card>
-      
-      {/* Transactions List */}
-      <Card>
-        {loading ? (
-          <Loading />
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No transactions found</p>
-            <Button onClick={() => handleOpenModal()}>Add Your First Transaction</Button>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4">Title</th>
-                    <th className="text-left py-3 px-4">Category</th>
-                    <th className="text-left py-3 px-4">Date</th>
-                    <th className="text-left py-3 px-4">Type</th>
-                    <th className="text-right py-3 px-4">Amount</th>
-                    <th className="text-right py-3 px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((transaction) => (
-                    <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div>
-                          <p>{transaction.title}</p>
-                          {transaction.description && (
-                            <p className="text-sm text-gray-500">{transaction.description}</p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">{transaction.category}</td>
-                      <td className="py-3 px-4">{transaction.date}</td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-block px-2 py-1 rounded text-sm ${
-                          transaction.type === 'income' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {transaction.type}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className={
-                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                        }>
-                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleOpenModal(transaction)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(transaction.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-gray-600">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
+
+            {/* Extended Filters */}
+            {showFilters && (
+              <div className="space-y-4 pt-4 border-t">
+                {/* Date Range */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="from">From Date</Label>
+                    <Input
+                      id="from"
+                      type="date"
+                      value={filters.from}
+                      onChange={(e) => updateFilter('from', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="to">To Date</Label>
+                    <Input
+                      id="to"
+                      type="date"
+                      value={filters.to}
+                      onChange={(e) => updateFilter('to', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Category Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryType">Category Type</Label>
+                    <Select
+                      value={filters.categoryType}
+                      onValueChange={(value) => updateFilter('categoryType', value)}
+                    >
+                      <SelectTrigger id="categoryType">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Types</SelectItem>
+                        <SelectItem value="INCOME">Income</SelectItem>
+                        <SelectItem value="EXPENSE">Expense</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryName">Category Name</Label>
+                    <Select
+                      value={filters.categoryName}
+                      onValueChange={(value) => updateFilter('categoryName', value)}
+                    >
+                      <SelectTrigger id="categoryName">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Categories</SelectItem>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Payment Mode and Note */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentMode">Payment Mode</Label>
+                    <Input
+                      id="paymentMode"
+                      placeholder="e.g., Cash, Credit Card"
+                      value={filters.paymentMode}
+                      onChange={(e) => updateFilter('paymentMode', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="note">Note</Label>
+                    <Input
+                      id="note"
+                      placeholder="Search in notes..."
+                      value={filters.note}
+                      onChange={(e) => updateFilter('note', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Amount Range */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="minAmount">Minimum Amount</Label>
+                    <Input
+                      id="minAmount"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={filters.minAmount || ''}
+                      onChange={(e) => updateFilter('minAmount', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="maxAmount">Maximum Amount</Label>
+                    <Input
+                      id="maxAmount"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={filters.maxAmount || ''}
+                      onChange={(e) => updateFilter('maxAmount', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2">
+                    <X size={16} />
+                    Clear All Filters
+                  </Button>
+                </div>
               </div>
             )}
-          </>
-        )}
+          </div>
+        </CardContent>
       </Card>
-      
-      {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <TransactionModal
-          transaction={editingTransaction}
-          categories={categories}
-          onClose={handleCloseModal}
-          onSuccess={loadTransactions}
-        />
-      )}
+
+      {/* Transactions Table */}
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading transactions...</p>
+              </div>
+            </div>
+          ) : !transactionResponse || transactionResponse.transactions.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No transactions found</p>
+              <Button onClick={() => handleOpenModal()}>Add Your First Transaction</Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Payment Mode</TableHead>
+                    <TableHead>Note</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactionResponse.transactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{transaction.name}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <span>{transaction.category.name}</span>
+                          <Badge
+                            variant={transaction.category.type === 'INCOME' ? 'default' : 'secondary'}
+                            className={
+                              transaction.category.type === 'INCOME'
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200 w-fit'
+                                : 'bg-red-100 text-red-800 hover:bg-red-200 w-fit'
+                            }
+                          >
+                            {transaction.category.type}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatDateTime(transaction.datetime)}
+                      </TableCell>
+                      <TableCell>{transaction.paymentMode}</TableCell>
+                      <TableCell className="max-w-50">
+                        <span className="text-sm text-gray-600 truncate block">
+                          {transaction.note || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span
+                          className={
+                            transaction.category.type === 'INCOME'
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                          }
+                        >
+                          {transaction.category.type === 'INCOME' ? '+' : '-'}
+                          {formatCurrency(transaction.amount)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenModal(transaction)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit2 size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(transaction.id)}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        transaction={editingTransaction}
+        categories={categories}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={loadTransactions}
+      />
     </div>
-  );
-}
-
-interface TransactionModalProps {
-  transaction: Transaction | null;
-  categories: Category[];
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function TransactionModal({ transaction, categories, onClose, onSuccess }: TransactionModalProps) {
-  const [formData, setFormData] = useState({
-    title: transaction?.title || '',
-    amount: transaction?.amount.toString() || '',
-    type: transaction?.type || 'expense',
-    category: transaction?.category || '',
-    date: transaction?.date || new Date().toISOString().split('T')[0],
-    description: transaction?.description || ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
-    }
-    
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = 'Amount must be greater than 0';
-    }
-    
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
-    }
-    
-    if (!formData.date) {
-      newErrors.date = 'Date is required';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validate()) return;
-    
-    setLoading(true);
-    
-    try {
-      const data = {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        type: formData.type as 'income' | 'expense'
-      };
-      
-      if (transaction) {
-        await mockApi.transactions.update(transaction.id, data);
-        toast.success('Transaction updated successfully');
-      } else {
-        await mockApi.transactions.create(data);
-        toast.success('Transaction created successfully');
-      }
-      
-      onSuccess();
-      onClose();
-    } catch (err) {
-      toast.error('Failed to save transaction');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const filteredCategories = categories.filter(cat => cat.type === formData.type);
-  
-  return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
-      title={transaction ? 'Edit Transaction' : 'Add Transaction'}
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          error={errors.title}
-          disabled={loading}
-        />
-        
-        <Input
-          label="Amount"
-          type="number"
-          step="0.01"
-          value={formData.amount}
-          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-          error={errors.amount}
-          disabled={loading}
-        />
-        
-        <Select
-          label="Type"
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value, category: '' })}
-          options={[
-            { value: 'income', label: 'Income' },
-            { value: 'expense', label: 'Expense' }
-          ]}
-          disabled={loading}
-        />
-        
-        <Select
-          label="Category"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          options={[
-            { value: '', label: 'Select a category' },
-            ...filteredCategories.map(cat => ({ value: cat.name, label: cat.name }))
-          ]}
-          error={errors.category}
-          disabled={loading}
-        />
-        
-        <Input
-          label="Date"
-          type="date"
-          value={formData.date}
-          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          error={errors.date}
-          disabled={loading}
-        />
-        
-        <div>
-          <label className="block mb-1.5 text-gray-700">Description (Optional)</label>
-          <textarea
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            disabled={loading}
-          />
-        </div>
-        
-        <div className="flex gap-3">
-          <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Saving...' : transaction ? 'Update' : 'Create'}
-          </Button>
-          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Modal>
   );
 }

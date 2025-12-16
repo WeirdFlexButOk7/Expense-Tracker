@@ -2,13 +2,26 @@ import * as React from "react";
 import { cn } from "./utils";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
   error?: string;
 }
 
-function Input({ className, type, error, ...props }: InputProps) {
+function Input({ className, type, label, error, ...props }: InputProps) {
+  const id = React.useId();
+
   return (
     <div className="flex flex-col gap-1">
+      {label && (
+        <label
+          htmlFor={id}
+          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          {label}
+        </label>
+      )}
+
       <input
+        id={id}
         type={type}
         data-slot="input"
         className={cn(

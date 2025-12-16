@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Loading } from '../components/ui/Loading';
-import { mockApi } from '../lib/mockApi';
 import { actApi } from '../lib/axiosConfig';
 import { TrendingUp, TrendingDown, DollarSign, List } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -87,7 +86,7 @@ export function Dashboard() {
 
           <button
             onClick={loadStats}
-            className="bg-blue-600 text-white px-4 py-2 rounded h-[38px]"
+            className="bg-blue-600 text-white px-4 py-2 rounded h-9.5"
           >
             Apply
           </button>

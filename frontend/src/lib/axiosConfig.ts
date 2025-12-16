@@ -1,5 +1,6 @@
 import axios from "axios";
 import Decimal from "decimal.js";
+import { Transaction, TransactionResponse, TransactionRequest, TransactionFilters, Category } from './types';
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api",
@@ -15,6 +16,78 @@ api.interceptors.request.use((config) => {
 interface actUser {
   username: string;
 }
+
+const mockCategories: Category[] = [
+  { id: 1, name: 'Salary', type: 'INCOME' },
+  { id: 2, name: 'Freelance', type: 'INCOME' },
+  { id: 3, name: 'Investment', type: 'INCOME' },
+  { id: 4, name: 'Food', type: 'EXPENSE' },
+  { id: 5, name: 'Transport', type: 'EXPENSE' },
+  { id: 6, name: 'Entertainment', type: 'EXPENSE' },
+  { id: 7, name: 'Shopping', type: 'EXPENSE' },
+  { id: 8, name: 'Bills', type: 'EXPENSE' },
+  { id: 9, name: 'Healthcare', type: 'EXPENSE' },
+];
+
+const mockUser = {
+  id: 1,
+  username: 'john_doe',
+  email: 'john@example.com'
+};
+
+let mockTransactions: Transaction[] = [
+  {
+    id: 1,
+    user: mockUser,
+    category: mockCategories[0],
+    name: 'Monthly Salary',
+    amount: 5000,
+    datetime: '2024-01-15T10:00:00',
+    paymentMode: 'Bank Transfer',
+    note: 'January salary'
+  },
+  {
+    id: 2,
+    user: mockUser,
+    category: mockCategories[3],
+    name: 'Grocery Shopping',
+    amount: 150.50,
+    datetime: '2024-01-16T14:30:00',
+    paymentMode: 'Credit Card',
+    note: 'Weekly groceries'
+  },
+  {
+    id: 3,
+    user: mockUser,
+    category: mockCategories[4],
+    name: 'Gas Station',
+    amount: 45.00,
+    datetime: '2024-01-17T08:15:00',
+    paymentMode: 'Cash',
+    note: 'Fuel for car'
+  },
+  {
+    id: 4,
+    user: mockUser,
+    category: mockCategories[1],
+    name: 'Web Design Project',
+    amount: 1200,
+    datetime: '2024-01-18T16:45:00',
+    paymentMode: 'PayPal',
+    note: 'Client payment for website redesign'
+  },
+  {
+    id: 5,
+    user: mockUser,
+    category: mockCategories[5],
+    name: 'Movie Tickets',
+    amount: 30.00,
+    datetime: '2024-01-19T19:00:00',
+    paymentMode: 'Debit Card',
+    note: 'Weekend entertainment'
+  }
+];
+
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -91,8 +164,59 @@ export const actApi = {
 
       return res.data;
     }
-  }
+  },
 
+  categories: {
+    getAll: async (): Promise<Category[]> => {
+      await delay(300);
+
+      const resp = await api.get("/category");
+      return resp.data;
+    }
+  },
+
+  transactions: {
+    getAll: async (filters: TransactionFilters): Promise<TransactionResponse> => {
+      await delay(500);
+      
+      const resp = await api.get("/transaction",{
+        params: {
+          from: filters.from,
+          to: filters.to,
+          categoryType: filters.categoryType,
+          categoryName: filters.categoryName,
+          name : filters.name,
+          paymentMode: filters.paymentMode,
+          note: filters.note,
+          minAmount: filters.minAmount,
+          maxAmount: filters.maxAmount
+        }
+      });
+
+      console.log(resp)
+      return resp.data;
+    },
+
+    create: async (data: TransactionRequest): Promise<Transaction> => {
+      await delay(500);
+      
+      const resp = await api.post(`/transactions/new`, data);
+      return resp.data;
+    },
+
+    update: async (id: number, data: TransactionRequest): Promise<Transaction> => {
+      await delay(500);
+      
+      const resp = await api.put(`/transactions/update/${id}`, data);
+      return resp.data;
+    },
+
+    delete: async (id: number): Promise<void> => {
+      await delay(300);
+
+      await api.delete(`/transactions/update/${id}`);
+    }
+  }
 };
 
 export type { actUser };

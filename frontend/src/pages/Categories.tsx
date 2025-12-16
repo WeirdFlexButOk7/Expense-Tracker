@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
-import { Modal } from '../components/ui/Modal';
 import { Loading } from '../components/ui/Loading';
-import { mockApi, Category } from '../lib/mockApi';
-import { toast } from '../lib/toast';
+import { actApi } from '../lib/axiosConfig';
+import { Category } from '../lib/types';
 import { Plus, Tag } from 'lucide-react';
 
 export function Categories() {
@@ -22,7 +19,7 @@ export function Categories() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const data = await mockApi.categories.getAll();
+      const data = await actApi.categories.getAll();
       setCategories(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load categories');
@@ -31,8 +28,8 @@ export function Categories() {
     }
   };
   
-  const incomeCategories = categories.filter(cat => cat.type === 'income');
-  const expenseCategories = categories.filter(cat => cat.type === 'expense');
+  const incomeCategories = categories.filter(cat => cat.type === 'INCOME');
+  const expenseCategories = categories.filter(cat => cat.type === 'EXPENSE');
   
   return (
     <div className="space-y-6">
@@ -93,96 +90,6 @@ export function Categories() {
           </Card>
         </div>
       )}
-      
-      {isModalOpen && (
-        <CategoryModal
-          onClose={() => setIsModalOpen(false)}
-          onSuccess={loadCategories}
-        />
-      )}
     </div>
-  );
-}
-
-interface CategoryModalProps {
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function CategoryModal({ onClose, onSuccess }: CategoryModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'expense'
-  });
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Category name is required';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validate()) return;
-    
-    setLoading(true);
-    
-    try {
-      await mockApi.categories.create({
-        name: formData.name,
-        type: formData.type as 'income' | 'expense'
-      });
-      
-      toast.success('Category created successfully');
-      onSuccess();
-      onClose();
-    } catch (err) {
-      toast.error('Failed to create category');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  return (
-    <Modal isOpen={true} onClose={onClose} title="Add Category">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Category Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          error={errors.name}
-          disabled={loading}
-          placeholder="e.g., Groceries, Salary"
-        />
-        
-        <Select
-          label="Type"
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-          options={[
-            { value: 'income', label: 'Income' },
-            { value: 'expense', label: 'Expense' }
-          ]}
-          disabled={loading}
-        />
-        
-        <div className="flex gap-3">
-          <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Creating...' : 'Create'}
-          </Button>
-          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Modal>
   );
 }
