@@ -1,25 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Transaction, Category, TransactionRequest } from '../lib/types';
-import { actApi } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner';
 
 interface TransactionModalProps {
@@ -89,10 +76,10 @@ export function TransactionModal({
 
     try {
       if (transaction) {
-        await actApi.transactions.update(transaction.id, formData);
+        await api.transactions.update(transaction.id, formData);
         toast.success('Transaction updated successfully');
       } else {
-        await actApi.transactions.create(formData);
+        await api.transactions.create(formData);
         toast.success('Transaction created successfully');
       }
 

@@ -13,13 +13,13 @@ import { Profile } from './pages/Profile';
 import { Loading } from './components/ui/Loading';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { userA, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   if (loading) {
     return <Loading />;
   }
   
-  if (!userA) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
   
@@ -27,13 +27,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { userA, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   if (loading) {
     return <Loading />;
   }
   
-  if (userA) {
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
   

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Loading } from '../components/ui/Loading';
-import { actApi } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
 import { TrendingUp, TrendingDown, DollarSign, List } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -34,7 +34,7 @@ export function Dashboard() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const data = await actApi.dashboard.getStats(from, to);
+      const data = await api.dashboard.getStats(from, to);
       setStats(data);
       setFrom(data.fromDate);
       setTo(data.toDate);

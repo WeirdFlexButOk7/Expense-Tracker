@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
 import { Loading } from '../components/ui/Loading';
-import { actApi } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
 import { Category } from '../lib/types';
-import { Plus, Tag } from 'lucide-react';
+import { Tag } from 'lucide-react';
 
 export function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -19,7 +18,7 @@ export function Categories() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const data = await actApi.categories.getAll();
+      const data = await api.categories.getAll();
       setCategories(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load categories');

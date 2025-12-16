@@ -5,7 +5,7 @@ import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/select';
 import { Modal } from '../components/ui/Modal';
 import { Loading } from '../components/ui/Loading';
-import { actApi } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
 import { RecurringTransaction, Category } from '../lib/types';
 import { toast } from '../lib/toast';
 import { Plus, Edit2, Trash2, RefreshCw } from 'lucide-react';
@@ -25,7 +25,7 @@ export function Recurring() {
   
   const loadCategories = async () => {
     try {
-      const data = await actApi.categories.getAll();
+      const data = await api.categories.getAll();
       setCategories(data);
     } catch (err) {
       console.error('Failed to load categories:', err);
@@ -35,7 +35,7 @@ export function Recurring() {
   const loadRecurringTransactions = async () => {
     try {
       setLoading(true);
-      const data = await actApi.recurring.getAll();
+      const data = await api.recurring.getAll();
       setTransactions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recurring transactions');
@@ -58,7 +58,7 @@ export function Recurring() {
     if (!confirm('Are you sure you want to delete this recurring transaction?')) return;
     
     try {
-      await actApi.recurring.delete(id);
+      await api.recurring.delete(id);
       toast.success('Recurring transaction deleted successfully');
       loadRecurringTransactions();
     } catch (err) {
@@ -221,10 +221,10 @@ function RecurringModal({ transaction, categories, onClose, onSuccess }: Recurri
       };
       
       if (transaction) {
-        await actApi.recurring.update(transaction.id, data);
+        await api.recurring.update(transaction.id, data);
         toast.success('Recurring transaction updated successfully');
       } else {
-        await actApi.recurring.create(data);
+        await api.recurring.create(data);
         toast.success('Recurring transaction created successfully');
       }
       

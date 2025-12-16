@@ -1,46 +1,42 @@
 import axios from "axios";
 import Decimal from "decimal.js";
+import { StoreUser } from "./types";
 import { Transaction, TransactionResponse, TransactionRequest, TransactionFilters, Category, User, RecurringTransaction, RecurringTransactionRequest } from './types';
 
-const api = axios.create({
+const axiosClient = axios.create({
   baseURL: "http://localhost:8080/api",
   timeout: 10000
 });
 
-api.interceptors.request.use((config) => {
+axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-interface actUser {
-  username: string;
-}
-
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-let userA: actUser | null = null;
+let user: StoreUser | null = null;
 
-export const actApi = {
+export const api = {
   auth: {
     login: async (username: string, password: string) => {
       await delay(1000);
 
-    const res = await api.post("/auth/login", {
+    const res = await axiosClient.post("/auth/login", {
         username: username,
         password: password
     });
       
-      userA = {
+      user = {
         username: username
       };
       
       const token = res.data.token;
-      console.log(token);
       localStorage.setItem('token', token);
-      localStorage.setItem('userA', JSON.stringify(userA));
+      localStorage.setItem('user', JSON.stringify(user));
       
-      return { userA: userA, token };
+      return { user: user, token };
     },
 
     register: async (username: string, password: string, confirmPassword: string, balance: Decimal) => {
@@ -50,7 +46,7 @@ export const actApi = {
     if (username.length < 3) throw new Error("Username must be at least 3 characters");
     if (password.length < 6) throw new Error("Password must be at least 6 characters");
 
-    await api.post("/auth/register", {
+    await axiosClient.post("/auth/register", {
         username: username,
         password: password,
         balance: balance.toString()
@@ -60,16 +56,16 @@ export const actApi = {
     
     logout: () => {
       localStorage.removeItem('token');
-      localStorage.removeItem('userA');
-      userA = null;
+      localStorage.removeItem('user');
+      user = null;
     },
     
     getCurrentUser: () => {
-      const userStr = localStorage.getItem('userA');
+      const userStr = localStorage.getItem('user');
       if (userStr) {
-        userA = JSON.parse(userStr);
+        user = JSON.parse(userStr);
       }
-      return userA;
+      return user;
     }
   },
 
@@ -77,7 +73,7 @@ export const actApi = {
     getStats: async (from: string, to: string) => {
       await delay(500);
 
-      const res = await api.get("/dashboard", {
+      const res = await axiosClient.get("/dashboard", {
         params: { from, to }
       });
 
@@ -99,7 +95,7 @@ export const actApi = {
     getAll: async (): Promise<Category[]> => {
       await delay(300);
 
-      const resp = await api.get("/category");
+      const resp = await axiosClient.get("/category");
       return resp.data;
     }
   },
@@ -108,7 +104,7 @@ export const actApi = {
     getAll: async (filters: TransactionFilters): Promise<TransactionResponse> => {
       await delay(500);
       
-      const resp = await api.get("/transaction",{
+      const resp = await axiosClient.get("/transaction",{
         params: {
           from: filters.from,
           to: filters.to,
@@ -128,21 +124,21 @@ export const actApi = {
     create: async (data: TransactionRequest): Promise<Transaction> => {
       await delay(500);
       
-      const resp = await api.post(`/transaction/new`, data);
+      const resp = await axiosClient.post(`/transaction/new`, data);
       return resp.data;
     },
 
     update: async (id: number, data: TransactionRequest): Promise<Transaction> => {
       await delay(500);
       
-      const resp = await api.put(`/transaction/update/${id}`, data);
+      const resp = await axiosClient.put(`/transaction/update/${id}`, data);
       return resp.data;
     },
 
     delete: async (id: number): Promise<void> => {
       await delay(300);
 
-      await api.delete(`/transaction/update/${id}`);
+      await axiosClient.delete(`/transaction/update/${id}`);
     }
   },
 
@@ -150,7 +146,7 @@ export const actApi = {
     getProfile: async (): Promise<User> => {
       await delay(300);
 
-      const resp = await api.get("/user");
+      const resp = await axiosClient.get("/user");
       return resp.data;
     }
   },
@@ -159,7 +155,7 @@ export const actApi = {
     getAll: async (): Promise<RecurringTransaction[]> => {
       await delay(300);
 
-      const resp = await api.get("/recurring");
+      const resp = await axiosClient.get("/recurring");
       const data = resp.data;
 
       return data.map((item: any): RecurringTransaction => ({
@@ -177,24 +173,22 @@ export const actApi = {
     create: async (data: RecurringTransactionRequest): Promise<RecurringTransaction> => {
       await delay(500);
       
-      const resp = await api.post(`/recurring/new`, data);
+      const resp = await axiosClient.post(`/recurring/new`, data);
       return resp.data;
     },
 
     update: async (id: number, data: RecurringTransactionRequest): Promise<RecurringTransaction> => {
       await delay(500);
       
-      const resp = await api.put(`/recurring/update/${id}`, data);
+      const resp = await axiosClient.put(`/recurring/update/${id}`, data);
       return resp.data;
     },
 
     delete: async (id: number): Promise<void> => {
       await delay(300);
 
-      await api.delete(`/recurring/${id}`)
+      await axiosClient.delete(`/recurring/${id}`)
     }
   }
 
 };
-
-export type { actUser };

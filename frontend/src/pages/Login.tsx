@@ -31,7 +31,6 @@ export function Login() {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validate()) return;
     
     setLoading(true);
@@ -59,21 +58,21 @@ export function Login() {
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              // label="Username"
+              label="Username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              // error={errors.username}
+              error={errors.username}
               placeholder="Enter your username"
               disabled={loading}
             />
             
             <Input
-              // label="Password"
+              label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              // error={errors.password}
+              error={errors.password}
               placeholder="Enter your password"
               disabled={loading}
             />
@@ -96,7 +95,7 @@ export function Login() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
-              <Link to="/register" className="text-[var(--color-primary)] hover:underline">
+              <Link to="/register" className="text-(--color-primary) hover:underline">
                 Register
               </Link>
             </p>

@@ -49,23 +49,15 @@ export function Register() {
     }
     
     setErrors(newErrors);
-    console.log(errors);
-    console.log(Object.keys(newErrors));
     return Object.keys(newErrors).length === 0;
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("button pressed");
     e.preventDefault();
-    console.log("button pressed5");
     if (!validate()) return;
-    console.log("button pressed2");
     
     setLoading(true);
-    console.log("button pressed3");
     setErrors({});
-
-    console.log("button pressed4");
     
     try {
       await register(username, password, confirmPassword, balance);
@@ -89,7 +81,7 @@ export function Register() {
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              // label="Username"
+              label="Username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -99,7 +91,7 @@ export function Register() {
             />
             
             <Input
-              // label="Password"
+              label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -109,7 +101,7 @@ export function Register() {
             />
             
             <Input
-              // label="Confirm Password"
+              label="Confirm Password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -119,6 +111,7 @@ export function Register() {
             />
 
             <Input
+              label="Balance"
               type="text"
               value={balance.isZero()?"":balance.toString()}
               onChange={(e) => {
@@ -150,7 +143,7 @@ export function Register() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-[var(--color-primary)] hover:underline">
+              <Link to="/login" className="text-(--color-primary) hover:underline">
                 Sign in
               </Link>
             </p>

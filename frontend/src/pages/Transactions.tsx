@@ -1,26 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, Category, TransactionFilters, TransactionResponse } from '../lib/types';
-import { actApi } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
 import { TransactionModal } from '../components/transactionModal';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Badge } from '../components/ui/badge';
 import { Plus, Edit2, Trash2, Search, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -55,7 +42,7 @@ export function Transactions() {
 
   const loadCategories = async () => {
     try {
-      const data = await actApi.categories.getAll();
+      const data = await api.categories.getAll();
       setCategories(data);
     } catch (err) {
       toast.error('Failed to load categories');
@@ -66,7 +53,7 @@ export function Transactions() {
   const loadTransactions = async () => {
     try {
       setLoading(true);
-      const data = await actApi.transactions.getAll(filters);
+      const data = await api.transactions.getAll(filters);
       setTransactionResponse(data);
     } catch (err) {
       toast.error('Failed to load transactions');
@@ -91,7 +78,7 @@ export function Transactions() {
     if (!confirm('Are you sure you want to delete this transaction?')) return;
 
     try {
-      await actApi.transactions.delete(id);
+      await api.transactions.delete(id);
       toast.success('Transaction deleted successfully');
       loadTransactions();
     } catch (err) {

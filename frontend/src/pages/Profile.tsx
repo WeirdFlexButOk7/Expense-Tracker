@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Loading } from '../components/ui/Loading';
-import { actApi } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
 import { User } from '../lib/types';
 import { User as UserIcon, Calendar, DollarSign } from 'lucide-react';
 
@@ -17,7 +17,7 @@ export function Profile() {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const data = await actApi.user.getProfile();
+      const data = await api.user.getProfile();
       setUser(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');

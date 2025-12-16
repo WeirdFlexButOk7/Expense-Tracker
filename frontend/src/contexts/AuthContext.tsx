@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { actApi,  actUser } from '../lib/axiosConfig';
+import { api } from '../lib/axiosConfig';
+import { StoreUser } from '../lib/types';
 import Decimal from 'decimal.js';
 
 interface AuthContextType {
-  userA: actUser | null;
+  user: StoreUser | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string, confirmPassword: string, balance: Decimal) => Promise<void>;
@@ -13,31 +14,31 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [userA, setUserA] = useState<actUser | null>(null);
+  const [user, setUser] = useState<StoreUser | null>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const currentUser = actApi.auth.getCurrentUser();
-    setUserA(currentUser);
+    const currentUser = api.auth.getCurrentUser();
+    setUser(currentUser);
     setLoading(false);
   }, []);
   
   const login = async (username: string, password: string) => {
-    const { userA } = await actApi.auth.login(username, password);
-    setUserA(userA);
+    const { user } = await api.auth.login(username, password);
+    setUser(user);
   };
   
   const register = async (username: string, password: string, confirmPassword: string, balance: Decimal) => {
-    await actApi.auth.register(username, password, confirmPassword, balance);
+    await api.auth.register(username, password, confirmPassword, balance);
   };
   
   const logout = () => {
-    actApi.auth.logout();
-    setUserA(null);
+    api.auth.logout();
+    setUser(null);
   };
   
   return (
-    <AuthContext.Provider value={{ userA, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
